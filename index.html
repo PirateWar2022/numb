@@ -1,0 +1,31 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Numb</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="calculator">
+            <div class="display">
+                <textarea id="console" rows="10" cols="50" style="font-size: 15px;"></textarea>
+            </div>
+        </div>
+        <script>
+            const consoleEl = document.getElementById('console');
+            consoleEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const lines = consoleEl.value.split('\n');
+                    const lastLine = lines[lines.length - 1];
+                    try {
+                        const result = eval(lastLine);
+                        consoleEl.value += '\n' + result;
+                    } catch (error) {
+                        consoleEl.value += '\nError: ' + error.message;
+                    }
+                }
+            });
+        </script>
+    </body> 
+</html>
