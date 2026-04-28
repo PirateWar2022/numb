@@ -7,25 +7,16 @@
     </head>
     <body>
         <div class="calculator">
+            
             <div class="display">
-                <textarea id="console" rows="10" cols="50" style="font-size: 15px;"></textarea>
+                <textarea id="console"></textarea>
+                <div class="divider"></div>
+                <ul id="result"></ul>
+                
             </div>
         </div>
-        <script>
-            const consoleEl = document.getElementById('console');
-            consoleEl.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const lines = consoleEl.value.split('\n');
-                    const lastLine = lines[lines.length - 1];
-                    try {
-                        const result = eval(lastLine);
-                        consoleEl.value += '\n' + result;
-                    } catch (error) {
-                        consoleEl.value += '\nError: ' + error.message;
-                    }
-                }
-            });
-        </script>
+
+       
+        <script src="script.js"></script>
     </body> 
 </html>
