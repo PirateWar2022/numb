@@ -1,0 +1,61 @@
+{
+  "name": "noteflow",
+  "version": "1.0.0",
+  "description": "Modern Calculator for school",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --development",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "noteflow"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "marked": "^11.1.1"
+  },
+  "build": {
+    "appId": "com.noteflow.app",
+    "productName": "Noteflow",
+    "files": [
+      "main.js",
+      "script.js",
+      "index.html",
+      "node_modules"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  }
+}
