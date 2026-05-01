@@ -29,9 +29,8 @@ function availableFunctions() {
         'pow(a, b)', 'sqrt(x)', 'abs(x)',
         'max(a, b)', 'min(a, b)', 'log(x)', 'log10(x)', 'exp(x)',
         'sin(x)', 'cos(x)', 'tan(x)',
-        'sin(45)', 'cos(30)', 'tan(60)',
         'expand(expr)', 'solve(equation, variable)',
-        'help', 'functions', 'mode rad', 'mode deg', 'clear'
+        'help', 'functions', 'mode rad', 'mode deg', 'clear', 'factor(x)'
     ];
 }
 
@@ -281,6 +280,188 @@ function formatPoly(terms) {
     }).join('');
 }
 
+//─── factor() ─────────────────────────────────────────────────────────────────────────────────────
+function factor(expr) {
+  expr = expr.replace(/\s+/g, "");
+  expr = expr.replace(/-/g, "+-");
+
+  const terms = expr.split("+").filter(Boolean);
+  let poly = {};
+
+  for (let term of terms) {
+    let coeff = 0;
+    let power = 0;
+
+    if (term.includes("x")) {
+      const parts = term.split("x");
+
+      let c = parts[0];
+
+      if (c === "" || c === "+") coeff = 1;
+      else if (c === "-") coeff = -1;
+      else coeff = Number(c.replace("*", ""));
+
+      if (term.includes("^")) {
+        power = Number(term.split("^")[1]);
+      } else {
+        power = 1;
+      }
+    } else {
+      coeff = Number(term);
+      power = 0;
+    }
+
+    poly[power] = (poly[power] || 0) + coeff;
+  }
+
+  function degree(p) {
+    return Math.max(...Object.keys(p).map(Number));
+  }
+
+  function gcd(a, b) {
+    a = Math.abs(a);
+    b = Math.abs(b);
+    while (b) {
+      [a, b] = [b, a % b];
+    }
+    return a;
+  }
+
+  function polyGCD(p) {
+    let values = Object.values(p).filter(v => v !== 0);
+    return values.reduce((a, b) => gcd(a, b));
+  }
+
+  function evalPoly(p, x) {
+    let sum = 0;
+    for (let power in p) {
+      sum += p[power] * Math.pow(x, Number(power));
+    }
+    return sum;
+  }
+
+  function divideByRoot(p, root) {
+    const deg = degree(p);
+    const coeffs = [];
+
+    for (let i = deg; i >= 0; i--) {
+      coeffs.push(p[i] || 0);
+    }
+
+    const result = [coeffs[0]];
+
+    for (let i = 1; i < coeffs.length - 1; i++) {
+      result[i] = coeffs[i] + result[i - 1] * root;
+    }
+
+    const newPoly = {};
+    let newDeg = deg - 1;
+
+    for (let c of result) {
+      if (c !== 0) newPoly[newDeg] = c;
+      newDeg--;
+    }
+
+    return newPoly;
+  }
+
+  function possibleRoots(p) {
+    const constant = Math.abs(p[0] || 0);
+    if (constant === 0) return [0];
+
+    const roots = [];
+
+    for (let i = 1; i <= constant; i++) {
+      if (constant % i === 0) {
+        roots.push(i, -i);
+      }
+    }
+
+    return roots;
+  }
+
+  function polyToString(p) {
+    const deg = degree(p);
+    let result = "";
+
+    for (let i = deg; i >= 0; i--) {
+      const c = p[i] || 0;
+      if (c === 0) continue;
+
+      if (result && c > 0) result += "+";
+
+      if (i === 0) {
+        result += c;
+      } else if (i === 1) {
+        if (c === 1) result += "x";
+        else if (c === -1) result += "-x";
+        else result += c + "x";
+      } else {
+        if (c === 1) result += `x^${i}`;
+        else if (c === -1) result += `-x^${i}`;
+        else result += `${c}x^${i}`;
+      }
+    }
+
+    return result || "0";
+  }
+
+  let result = [];
+
+  // common numeric factor
+  const common = polyGCD(poly);
+
+  if (common > 1) {
+    result.push(String(common));
+
+    for (let power in poly) {
+      poly[power] /= common;
+    }
+  }
+
+  // factor x if constant term is 0
+  while ((poly[0] || 0) === 0 && degree(poly) > 0) {
+    result.push("x");
+
+    const newPoly = {};
+    for (let power in poly) {
+      if (Number(power) > 0) {
+        newPoly[Number(power) - 1] = poly[power];
+      }
+    }
+
+    poly = newPoly;
+  }
+
+  // rational/integer roots
+  let changed = true;
+
+  while (changed && degree(poly) > 0) {
+    changed = false;
+
+    for (let r of possibleRoots(poly)) {
+      if (evalPoly(poly, r) === 0) {
+        if (r > 0) result.push(`(x-${r})`);
+        else if (r < 0) result.push(`(x+${Math.abs(r)})`);
+        else result.push("x");
+
+        poly = divideByRoot(poly, r);
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  // remaining part
+  if (degree(poly) > 0) {
+    result.push(`(${polyToString(poly)})`);
+  } else if (poly[0] && poly[0] !== 1) {
+    result.push(String(poly[0]));
+  }
+
+  return result.join("");
+}
+
 // ── Keydown handler ──────────────────────────────────────────────────────────
 
 consoleEl.addEventListener('keydown', function (e) {
@@ -354,7 +535,7 @@ consoleEl.addEventListener('keydown', function (e) {
                     consoleEl.value = lines.join('\n') + (lines.length ? '\n' : '') + lastLine + '\n';
                     resultEl.innerHTML += '<li>' + result + '</li>';
                 } catch (error) {
-                    consoleEl.value = lines.join('\n') + (lines.length ? '\n' : '') + lastLine + ' = Error: ' + error.message + '\n';
+                    consoleEl.value = lines.join('\n') + (lines.length ? '\n' : '') + lastLine + '\n';
                     resultEl.innerHTML += '<li>Error: ' + error.message + '</li>';
                 }
             }

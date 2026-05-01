@@ -55,8 +55,8 @@ body {
 .display {
   position: relative;
   width: 100%;
-  min-height: 6rem;
-  padding: 1.4rem 1.2rem;
+  height: 100%;
+  min-height: 6rem;;
   border-radius: 20px;
   color: var(--accent);
   font-size: clamp(2rem, 4vw, 3.5rem);
